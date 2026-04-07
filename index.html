@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#060b14">
+  <title>Smart Camp OS 🏕️</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏕️</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loading-screen">
+  <div class="loader-logo">🏕️</div>
+  <div class="loader-text">Smart Camp OS</div>
+  <div class="loader-bar"></div>
+</div>
+
+<!-- Ended Screen -->
+<div id="ended-screen" class="ended-screen" style="display:none">
+  <div class="ended-icon">🏅</div>
+  <div class="ended-title">انتهى المعسكر</div>
+  <div class="ended-sub">شكراً لمشاركتكم — إلى لقاء قريب إن شاء الله 🤍</div>
+</div>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="camp-logo">
+      <div class="camp-logo-icon" id="camp-logo-icon">🏕️</div>
+      <img id="camp-logo-img" src="" alt="" style="display:none;width:44px;height:44px;border-radius:12px;object-fit:cover">
+      <div>
+        <div class="camp-title" id="camp-title">Smart Camp OS</div>
+        <div class="camp-subtitle">نظام إدارة المعسكرات الذكي</div>
+      </div>
+    </div>
+    <div class="header-time" id="live-time">--:--</div>
+  </div>
+</header>
+
+<!-- Announcements Ticker -->
+<div class="ticker-section" style="padding:0 16px;margin:12px auto;max-width:1200px">
+  <div class="ticker-container">
+    <div class="ticker-label">📢 إعلانات</div>
+    <div class="ticker-track">
+      <div class="ticker-content" id="ticker-content">جارٍ تحميل الإعلانات...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<main class="main-container" id="main-content">
+
+  <!-- Live Status -->
+  <div class="status-grid" style="margin-bottom:24px">
+    <div class="status-card current" id="current-activity">
+      <div class="skeleton" style="height:100px;border-radius:8px"></div>
+    </div>
+    <div class="status-card next" id="next-activity">
+      <div class="skeleton" style="height:100px;border-radius:8px"></div>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-section glass-card" style="margin-bottom:24px">
+    <div class="progress-header">
+      <span class="progress-label">📈 تقدم اليوم</span>
+      <span class="progress-pct" id="progress-pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="day-progress" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Activities Section -->
+  <section class="activities-section">
+    <div class="section-header">
+      <div class="section-icon">📅</div>
+      <div class="section-title">جدول الأنشطة</div>
+      <div class="section-divider"></div>
+    </div>
+    <div class="activity-list" id="activities-list">
+      <div class="skeleton" style="height:64px;border-radius:10px;margin-bottom:8px"></div>
+      <div class="skeleton" style="height:64px;border-radius:10px;margin-bottom:8px"></div>
+      <div class="skeleton" style="height:64px;border-radius:10px;margin-bottom:8px"></div>
+    </div>
+  </section>
+
+  <!-- Countdown -->
+  <section class="countdown-section" style="margin-top:32px">
+    <div class="section-header">
+      <div class="section-icon">⏳</div>
+      <div class="section-title">الوقت المتبقي للحفل الختامي</div>
+      <div class="section-divider"></div>
+    </div>
+    <div class="countdown-grid">
+      <div class="countdown-unit">
+        <span class="countdown-value" id="cd-days">00</span>
+        <div class="countdown-label">أيام</div>
+      </div>
+      <div class="countdown-unit">
+        <span class="countdown-value" id="cd-hours">00</span>
+        <div class="countdown-label">ساعات</div>
+      </div>
+      <div class="countdown-unit">
+        <span class="countdown-value" id="cd-minutes">00</span>
+        <div class="countdown-label">دقائق</div>
+      </div>
+      <div class="countdown-unit">
+        <span class="countdown-value" id="cd-seconds">00</span>
+        <div class="countdown-label">ثوان</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section class="gallery-section" style="margin-top:32px">
+    <div class="section-header">
+      <div class="section-icon">🖼️</div>
+      <div class="section-title">معرض الصور</div>
+      <div class="section-divider"></div>
+    </div>
+    <div class="gallery-grid" id="gallery-grid">
+      <div class="skeleton" style="height:150px;border-radius:10px"></div>
+      <div class="skeleton" style="height:150px;border-radius:10px"></div>
+      <div class="skeleton" style="height:150px;border-radius:10px"></div>
+    </div>
+  </section>
+
+  <!-- Map -->
+  <section class="map-section" style="margin-top:32px">
+    <div class="section-header">
+      <div class="section-icon">📍</div>
+      <div class="section-title">موقع المعسكر</div>
+      <div class="section-divider"></div>
+    </div>
+    <div class="map-container">
+      <iframe id="map-frame" src="" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <div style="text-align:center;padding:40px 0 20px;color:var(--text-muted);font-size:0.72rem">
+    Smart Camp OS &copy; 2025 &nbsp;|&nbsp;
+    <a href="admin.html" style="color:var(--primary);text-decoration:none">لوحة التحكم</a>
+  </div>
+
+</main>
+
+<!-- Floating WhatsApp -->
+<a class="wa-float" id="wa-float" href="#" target="_blank" title="تواصل مع المشرف">💬</a>
+
+<!-- Scripts -->
+<script src="js/firebase.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
