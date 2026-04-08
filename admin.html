@@ -3,11 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة التحكم - Smart Camp OS</title>
+  <title>لوحة التحكم — Smart Camp OS</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="admin.css">
 </head>
+<style>
+.glass-footer {
+    width: 100%;
+    padding: 30px 0;
+    margin-top: 50px; /* لضمان وجود مسافة عن محتوى الصفحة */
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(201, 169, 110, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.footer-content {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.credit-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.role-tag {
+    font-size: 0.75rem;
+    color: #C9A96E; /* اللون الذهبي */
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 5px;
+    opacity: 0.8;
+}
+
+.name-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #ffffff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.footer-divider {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, #C9A96E, transparent);
+    opacity: 0.4;
+}
+
+/* لمسة جمالية للموبايل */
+@media (max-width: 600px) {
+    .footer-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .footer-divider {
+        width: 60px;
+        height: 1px;
+        background: linear-gradient(to right, transparent, #C9A96E, transparent);
+    }
+}
+
+</style>
 <body>
 
 <!-- Toast Container -->
@@ -26,7 +89,7 @@
     <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="AdminApp.attemptLogin()">
       🔓 دخول
     </button>
-    <div style="margin-top:16px;font-size:0.75rem;color:var(--text-muted)">
+    <div style="margin-top:16px;font-size:0.72rem;color:var(--text-muted)">
       كلمة المرور الافتراضية: <strong style="color:var(--primary)">camp2025</strong>
     </div>
   </div>
@@ -35,8 +98,11 @@
 <!-- ════════════════ ADMIN LAYOUT ════════════════ -->
 <div id="admin-layout" class="admin-layout" style="display:none">
 
+  <!-- Sidebar Backdrop (mobile) -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="AdminApp.closeSidebar()"></div>
+
   <!-- Mobile Toggle -->
-  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <button class="sidebar-toggle" id="sidebar-toggle" onclick="AdminApp.toggleSidebar()">☰</button>
 
   <!-- Sidebar -->
   <aside class="admin-sidebar" id="admin-sidebar">
@@ -51,22 +117,24 @@
     </div>
 
     <div class="nav-group-label">القائمة الرئيسية</div>
-    <div class="nav-item active" data-section="dashboard"     onclick="AdminApp.navigateTo('dashboard')">
+    <div class="nav-item active" data-section="dashboard" onclick="AdminApp.navigateTo('dashboard')">
       <span class="nav-icon">📊</span> لوحة البيانات
     </div>
-    <div class="nav-item" data-section="activities"           onclick="AdminApp.navigateTo('activities')">
+    <div class="nav-item" data-section="activities" onclick="AdminApp.navigateTo('activities')">
       <span class="nav-icon">📅</span> إدارة الأنشطة
     </div>
-    <div class="nav-item" data-section="announcements"        onclick="AdminApp.navigateTo('announcements')">
+    <div class="nav-item" data-section="announcements" onclick="AdminApp.navigateTo('announcements')">
       <span class="nav-icon">📢</span> الإعلانات
+    </div>
+    <div class="nav-item" data-section="provinces" onclick="AdminApp.navigateTo('provinces')">
+      <span class="nav-icon">🗺️</span> المحافظات
     </div>
 
     <div class="nav-group-label">الإعدادات</div>
-    <div class="nav-item" data-section="settings"             onclick="AdminApp.navigateTo('settings')">
+    <div class="nav-item" data-section="settings" onclick="AdminApp.navigateTo('settings')">
       <span class="nav-icon">⚙️</span> إعدادات المعسكر
     </div>
-    <div class="nav-item" data-section="danger" style="color:var(--danger)"
-         onclick="AdminApp.navigateTo('danger')">
+    <div class="nav-item" data-section="danger" style="color:var(--danger)" onclick="AdminApp.navigateTo('danger')">
       <span class="nav-icon">⚠️</span> منطقة الخطر
     </div>
 
@@ -88,18 +156,22 @@
         <div class="admin-page-title">📊 لوحة البيانات</div>
       </div>
 
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px">
-        <div class="admin-card" style="text-align:center">
-          <div style="font-size:2.5rem;font-weight:900;color:var(--primary)" id="stat-activities">0</div>
-          <div style="font-size:0.85rem;color:var(--text-secondary);margin-top:4px">📅 نشاط مضاف</div>
+      <div class="stats-row" style="margin-bottom:20px">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-activities" style="color:var(--primary)">0</div>
+          <div class="stat-label">📅 نشاط مضاف</div>
         </div>
-        <div class="admin-card" style="text-align:center">
-          <div style="font-size:2.5rem;font-weight:900;color:var(--secondary)" id="stat-announcements">0</div>
-          <div style="font-size:0.85rem;color:var(--text-secondary);margin-top:4px">📢 إعلان</div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-announcements" style="color:var(--secondary)">0</div>
+          <div class="stat-label">📢 إعلان</div>
         </div>
-        <div class="admin-card" style="text-align:center">
-          <div style="font-size:1.6rem;font-weight:900;color:var(--accent)" id="stat-time">--:--</div>
-          <div style="font-size:0.85rem;color:var(--text-secondary);margin-top:4px" id="stat-date">اليوم</div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-provinces" style="color:var(--accent)">0</div>
+          <div class="stat-label">🗺️ محافظة</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-time" style="color:var(--text-primary);font-size:1.4rem">--:--</div>
+          <div class="stat-label" id="stat-date">اليوم</div>
         </div>
       </div>
 
@@ -107,21 +179,22 @@
       <div class="admin-card">
         <div class="admin-card-title">⚡ إجراءات سريعة</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-primary"   onclick="AdminApp.navigateTo('activities');AdminApp.openActivityModal()">➕ إضافة نشاط</button>
+          <button class="btn btn-primary" onclick="AdminApp.navigateTo('activities');AdminApp.openActivityModal()">➕ إضافة نشاط</button>
           <button class="btn btn-secondary" onclick="AdminApp.navigateTo('announcements');AdminApp.openAnnouncementModal()">📢 إعلان جديد</button>
+          <button class="btn btn-secondary" onclick="AdminApp.navigateTo('provinces');AdminApp.openProvinceModal()">🗺️ محافظة جديدة</button>
           <button class="btn btn-secondary" onclick="AdminApp.navigateTo('settings')">⚙️ الإعدادات</button>
           <a class="btn btn-secondary" href="index.html" target="_blank">🌐 عرض الموقع</a>
         </div>
       </div>
 
       <!-- Firebase Status -->
-      <div class="admin-card" style="border-color:rgba(0,212,170,0.3);background:rgba(0,212,170,0.04)">
+      <div class="admin-card" style="border-color:rgba(0,212,170,0.2);background:rgba(0,212,170,0.03)">
         <div class="admin-card-title" style="color:var(--primary)">🔥 Firebase Realtime Database</div>
-        <p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.9">
+        <p style="font-size:0.84rem;color:var(--text-secondary);line-height:1.9">
           المشروع يعمل مباشرة بدون Backend.<br>
           أي تعديل تجريه هنا <strong style="color:var(--primary)">يظهر فوراً</strong> لجميع المستخدمين.<br>
-          لإعداد Firebase: افتح <code style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:6px">js/firebase.js</code>
-          وضع بيانات مشروعك في <code style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:6px">FIREBASE_CONFIG</code>.
+          لإعداد Firebase: افتح <code style="background:rgba(255,255,255,0.08);padding:2px 8px;border-radius:5px;font-size:0.8rem">firebase.js</code>
+          وضع بيانات مشروعك في <code style="background:rgba(255,255,255,0.08);padding:2px 8px;border-radius:5px;font-size:0.8rem">FIREBASE_CONFIG</code>.
         </p>
       </div>
     </div>
@@ -159,13 +232,23 @@
       </div>
     </div>
 
+    <!-- ══ PROVINCES ══ -->
+    <div id="section-provinces" class="admin-section" style="display:none">
+      <div class="admin-header">
+        <div class="admin-page-title">🗺️ إدارة المحافظات</div>
+        <button class="btn btn-primary" onclick="AdminApp.openProvinceModal()">➕ محافظة جديدة</button>
+      </div>
+      <div id="provinces-list-admin">
+        <p style="color:var(--text-muted)">جارٍ التحميل...</p>
+      </div>
+    </div>
+
     <!-- ══ SETTINGS ══ -->
     <div id="section-settings" class="admin-section" style="display:none">
       <div class="admin-header">
         <div class="admin-page-title">⚙️ إعدادات المعسكر</div>
       </div>
 
-      <!-- General -->
       <div class="admin-card">
         <div class="admin-card-title">🏕️ إعدادات عامة</div>
         <div class="form-grid">
@@ -179,7 +262,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">اللون الرئيسي</label>
-            <input type="color" class="form-input" id="set-color" value="#00d4aa" style="height:46px;cursor:pointer">
+            <input type="color" class="form-input" id="set-color" value="#00d4aa" style="height:44px;cursor:pointer">
           </div>
           <div class="form-group">
             <label class="form-label">تاريخ الحفل الختامي</label>
@@ -189,18 +272,17 @@
         <div class="form-group">
           <label class="form-label">رابط تضمين خريطة Google Maps</label>
           <input type="text" class="form-input" id="set-map" placeholder="https://www.google.com/maps/embed?pb=..." dir="ltr">
-          <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px">افتح Google Maps › مشاركة › تضمين الخريطة › انسخ الرابط من src</div>
+          <div class="form-hint">افتح Google Maps › مشاركة › تضمين الخريطة › انسخ الرابط من src</div>
         </div>
         <div class="form-group">
           <label class="form-label">صور المعرض (رابط في كل سطر)</label>
           <textarea class="form-input" id="set-gallery" rows="5"
             placeholder="https://example.com/photo1.jpg&#10;https://example.com/photo2.jpg"
-            dir="ltr" style="resize:vertical"></textarea>
+            dir="ltr"></textarea>
         </div>
         <button class="btn btn-primary" onclick="AdminApp.saveSettings()">💾 حفظ الإعدادات</button>
       </div>
 
-      <!-- Change Password -->
       <div class="admin-card">
         <div class="admin-card-title">🔐 تغيير كلمة المرور</div>
         <div class="form-grid">
@@ -244,29 +326,45 @@
               للتأكيد، اكتب <strong>DELETE</strong> بالأحرف الكبيرة:
             </label>
             <input type="text" class="form-input" id="delete-confirm-input"
-              placeholder="اكتب DELETE هنا..." style="border-color:rgba(239,68,68,0.4)" dir="ltr" maxlength="6">
+              placeholder="اكتب DELETE هنا..." style="border-color:rgba(239,68,68,0.3)" dir="ltr" maxlength="6">
           </div>
           <div style="display:flex;gap:10px">
-            <button class="btn btn-danger"     onclick="AdminApp.finalDelete()">🗑️ تأكيد الحذف النهائي</button>
-            <button class="btn btn-secondary"  onclick="AdminApp.initDeleteFlow()">إلغاء</button>
+            <button class="btn btn-danger"    onclick="AdminApp.finalDelete()">🗑️ تأكيد الحذف النهائي</button>
+            <button class="btn btn-secondary" onclick="AdminApp.initDeleteFlow()">إلغاء</button>
           </div>
         </div>
 
         <div id="delete-done" style="display:none;text-align:center;padding:20px">
-          <div style="font-size:3rem;margin-bottom:12px">✅</div>
+          <div style="font-size:2.5rem;margin-bottom:12px">✅</div>
           <div style="font-weight:700;color:var(--success)">تم حذف جميع البيانات من Firebase</div>
-          <div style="font-size:0.82rem;color:var(--text-muted);margin-top:8px">يرى المستخدمون الآن شاشة "انتهى المعسكر"</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:8px">يرى المستخدمون الآن شاشة "انتهى المعسكر"</div>
         </div>
       </div>
 
       <div class="admin-card" style="margin-top:16px">
         <div class="admin-card-title" style="color:var(--warning)">💡 نصيحة</div>
-        <p style="font-size:0.85rem;color:var(--text-secondary)">
+        <p style="font-size:0.84rem;color:var(--text-secondary)">
           لا تستخدم هذا الزر إلا عند انتهاء المعسكر فعلياً.
           يمكنك دائماً تعديل أي بيانات من الأقسام الأخرى دون الحذف.
         </p>
       </div>
     </div>
+<footer class="glass-footer">
+    <div class="footer-content">
+        <div class="credit-card">
+            <span class="role-tag">تطوير وتصميم</span>
+            <span class="name-text">عبدالله علي عمران</span>
+        </div>
+        
+        <div class="footer-divider"></div>
+
+        <div class="credit-card">
+            <span class="role-tag">بمشاركة</span>
+            <span class="name-text">براء عمرو محمد</span>
+        </div>
+    </div>
+</footer>
+
 
   </main>
 </div>
@@ -313,12 +411,70 @@
     <div class="modal-sub">أدخل نص الإعلان</div>
     <div class="form-group">
       <label class="form-label">نص الإعلان</label>
-      <textarea class="form-input" id="ann-text" rows="3"
-        placeholder="اكتب الإعلان هنا..." style="resize:vertical"></textarea>
+      <textarea class="form-input" id="ann-text" rows="3" placeholder="اكتب الإعلان هنا..."></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="AdminApp.closeAnnModal()">إلغاء</button>
       <button class="btn btn-primary"   onclick="AdminApp.saveAnnouncement()">💾 نشر</button>
+    </div>
+  </div>
+</div>
+
+<!-- Province Modal -->
+<div class="modal-overlay" id="province-modal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-title" id="province-modal-title">إضافة محافظة</div>
+    <div class="modal-sub">أدخل بيانات المحافظة والمشرف</div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">اسم المحافظة</label>
+        <input type="text" class="form-input" id="prov-name" placeholder="مثال: محافظة الرياض">
+      </div>
+      <div class="form-group">
+        <label class="form-label">اسم المشرف</label>
+        <input type="text" class="form-input" id="prov-supervisor-name" placeholder="مثال: أحمد محمد">
+      </div>
+      <div class="form-group">
+        <label class="form-label">رقم المشرف</label>
+        <input type="text" class="form-input" id="prov-supervisor-phone" placeholder="05xxxxxxxx" dir="ltr">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top:4px">
+      <label class="form-label">الطلاب (اسم ورقم في كل سطر، مفصولان بفاصلة)</label>
+      <textarea class="form-input" id="prov-students" rows="5"
+        placeholder="محمد علي, 0501234567&#10;عبدالله أحمد, 0509876543&#10;خالد سعد, 0555555555"
+        dir="rtl"></textarea>
+      <div class="form-hint">مثال: محمد علي, 0501234567 — اكتب كل طالب في سطر منفصل</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="AdminApp.closeProvinceModal()">إلغاء</button>
+      <button class="btn btn-primary"   onclick="AdminApp.saveProvince()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Student Modal (add student to existing province) -->
+<div class="modal-overlay" id="student-modal">
+  <div class="modal-box">
+    <div class="modal-title">إضافة طالب</div>
+    <div class="modal-sub" id="student-modal-sub">إضافة طالب جديد</div>
+    <input type="hidden" id="student-province-id">
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">اسم الطالب</label>
+        <input type="text" class="form-input" id="student-name" placeholder="الاسم الكامل">
+      </div>
+      <div class="form-group">
+        <label class="form-label">رقم الهاتف</label>
+        <input type="text" class="form-input" id="student-phone" placeholder="05xxxxxxxx" dir="ltr">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="AdminApp.closeStudentModal()">إلغاء</button>
+      <button class="btn btn-primary"   onclick="AdminApp.saveStudent()">➕ إضافة</button>
     </div>
   </div>
 </div>

@@ -3,11 +3,12 @@
  * الصفحة الرئيسية | Firebase Realtime — بدون Backend
  */
 
-let campSettings     = null;
-let campActivities   = null;
+let campSettings      = null;
+let campActivities    = null;
 let campAnnouncements = null;
-let countdownTimer   = null;
-const _unsubscribers = [];
+let campProvinces     = null;
+let countdownTimer    = null;
+const _unsubscribers  = [];
 
 // ══════════════════════════════════════════════════════════════
 //  Init
@@ -16,23 +17,23 @@ async function initApp() {
   const ok = await window.CampUtils.initFirebase();
   if (!ok) { showFirebaseError(); return; }
 
-  // Load settings first (needed by everything)
   campSettings      = await window.CampUtils.loadData('/settings');
   campActivities    = await window.CampUtils.loadData('/activities');
   campAnnouncements = await window.CampUtils.loadData('/announcements');
+  campProvinces     = await window.CampUtils.loadData('/provinces');
 
-  // Initial render
   renderSettings();
   renderActivities();
   renderLiveStatus();
   renderAnnouncements();
+  renderProvinces();
   renderGallery();
   renderMap();
   startCountdown();
   updateClock();
   hideLoading();
 
-  // ── Realtime listeners ──
+  // Realtime listeners
   _unsubscribers.push(
     window.CampUtils.listenTo('/settings', val => {
       campSettings = val;
@@ -49,10 +50,13 @@ async function initApp() {
     window.CampUtils.listenTo('/announcements', val => {
       campAnnouncements = val;
       renderAnnouncements();
+    }),
+    window.CampUtils.listenTo('/provinces', val => {
+      campProvinces = val;
+      renderProvinces();
     })
   );
 
-  // Update live status every 30 seconds
   setInterval(() => {
     renderLiveStatus();
     renderActivities();
@@ -91,14 +95,13 @@ function renderLiveStatus() {
   const progress  = window.CampUtils.getDayProgress(campActivities);
   const remaining = window.CampUtils.timeRemaining(next);
 
-  // Current activity card
   const currentEl = document.getElementById('current-activity');
   if (currentEl) {
     if (current) {
       currentEl.innerHTML = `
         <div class="status-label">🔴 النشاط الحالي</div>
         <div class="status-value">${current.name}</div>
-        <div class="status-sub">📍 ${current.place} &nbsp;|&nbsp; ⏰ ${window.CampUtils.formatTime12(current.time)}</div>
+        <div class="status-sub">📍 ${current.place} &nbsp;·&nbsp; ⏰ ${window.CampUtils.formatTime12(current.time)}</div>
         <div class="status-badge"><span class="live-dot"></span> مباشر الآن</div>`;
     } else {
       currentEl.innerHTML = `
@@ -108,15 +111,14 @@ function renderLiveStatus() {
     }
   }
 
-  // Next activity card
   const nextEl = document.getElementById('next-activity');
   if (nextEl) {
     if (next) {
       nextEl.innerHTML = `
         <div class="status-label">⏭️ النشاط القادم</div>
         <div class="status-value">${next.name}</div>
-        <div class="status-sub">📍 ${next.place} &nbsp;|&nbsp; ⏰ ${window.CampUtils.formatTime12(next.time)}</div>
-        ${remaining ? `<div class="status-badge" style="background:rgba(124,58,237,0.15);color:#a78bfa;">⏳ بعد ${remaining}</div>` : ''}`;
+        <div class="status-sub">📍 ${next.place} &nbsp;·&nbsp; ⏰ ${window.CampUtils.formatTime12(next.time)}</div>
+        ${remaining ? `<div class="status-badge" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2);">⏳ بعد ${remaining}</div>` : ''}`;
     } else {
       nextEl.innerHTML = `
         <div class="status-label">النشاط القادم</div>
@@ -195,8 +197,75 @@ function renderAnnouncements() {
 
   const active = Object.values(campAnnouncements).filter(a => a.active !== false);
   ticker.textContent = active.length
-    ? active.map(a => a.text).join('     ⬥     ')
+    ? active.map(a => a.text).join('     ◆     ')
     : 'أهلاً وسهلاً بكم في المعسكر 🏕️';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  Render: Provinces
+// ══════════════════════════════════════════════════════════════
+function renderProvinces() {
+  const container = document.getElementById('provinces-grid');
+  if (!container) return;
+
+  if (!campProvinces) {
+    container.innerHTML = emptyState('🗺️', 'لم تُضَف محافظات بعد');
+    return;
+  }
+
+  const list = Object.entries(campProvinces).map(([id, p]) => ({ id, ...p }));
+
+  if (!list.length) {
+    container.innerHTML = emptyState('🗺️', 'لم تُضَف محافظات بعد');
+    return;
+  }
+
+  container.innerHTML = list.map(prov => {
+    const students = prov.students
+      ? Object.entries(prov.students).map(([sid, s]) => ({ id: sid, ...s }))
+      : [];
+    const phone = (prov.supervisorPhone || '').replace(/\D/g, '');
+
+    const studentsHTML = students.length
+      ? students.map((s, i) => `
+          <div class="student-row">
+            <div class="student-num">${i + 1}</div>
+            <div class="student-name">${s.name || '—'}</div>
+            ${s.phone ? `<div class="student-phone">${s.phone}</div>` : ''}
+          </div>`).join('')
+      : `<div class="no-students">لا يوجد طلاب مضافون</div>`;
+
+    return `
+      <div class="province-card">
+        <div class="province-header">
+          <div class="province-name-wrap">
+            <div class="province-name">${prov.name || 'محافظة'}</div>
+            <div class="province-count-badge">👥 ${students.length} طالب</div>
+          </div>
+          <div class="province-icon">🗺️</div>
+        </div>
+
+        <div class="province-supervisor">
+          <div class="supervisor-row">
+            <div class="supervisor-avatar">${(prov.supervisorName || 'م').charAt(0)}</div>
+            <div class="supervisor-info">
+              <div class="supervisor-name">${prov.supervisorName || 'لم يُحدَّد'}</div>
+              <div class="supervisor-label">المشرف</div>
+            </div>
+            ${phone ? `
+            <div class="supervisor-actions">
+              <a class="btn-action btn-call" href="tel:${phone}" title="اتصال">📞</a>
+              <a class="btn-action btn-wa"   href="https://wa.me/${phone}" target="_blank" title="واتساب">💬</a>
+            </div>` : ''}
+          </div>
+        </div>
+
+        <div class="province-students">
+          <div class="students-title">الطلاب</div>
+          ${studentsHTML}
+        </div>
+      </div>`;
+  }).join('');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -276,15 +345,15 @@ function showFirebaseError() {
   main.innerHTML = `
     <div class="error-state" style="padding:80px 20px;text-align:center">
       <div style="font-size:3rem;margin-bottom:16px">⚠️</div>
-      <div style="font-size:1.2rem;font-weight:700;color:var(--danger);margin-bottom:8px">
+      <div style="font-size:1.1rem;font-weight:700;color:var(--danger);margin-bottom:8px">
         تعذّر الاتصال بـ Firebase
       </div>
-      <div style="color:var(--text-muted);font-size:0.85rem;max-width:380px;margin:0 auto 24px;line-height:1.8">
-        تأكد من أنك وضعت بيانات <code style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:6px">FIREBASE_CONFIG</code>
-        الصحيحة في ملف <code style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:6px">js/firebase.js</code>
+      <div style="color:var(--text-muted);font-size:0.84rem;max-width:360px;margin:0 auto 24px;line-height:1.9">
+        تأكد من أنك وضعت بيانات <code style="background:rgba(255,255,255,0.08);padding:2px 8px;border-radius:5px">FIREBASE_CONFIG</code>
+        الصحيحة في ملف <code style="background:rgba(255,255,255,0.08);padding:2px 8px;border-radius:5px">firebase.js</code>
       </div>
       <button onclick="location.reload()"
-        style="background:var(--primary);color:#000;border:none;padding:10px 28px;border-radius:99px;font-family:inherit;font-size:0.9rem;font-weight:700;cursor:pointer">
+        style="background:var(--primary);color:#05080f;border:none;padding:10px 28px;border-radius:99px;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer">
         🔄 إعادة المحاولة
       </button>
     </div>`;
@@ -293,7 +362,7 @@ function showFirebaseError() {
 function emptyState(icon, text) {
   return `<div style="text-align:center;padding:40px 20px;color:var(--text-muted)">
     <div style="font-size:2rem;margin-bottom:10px">${icon}</div>
-    <div style="font-size:0.9rem">${text}</div>
+    <div style="font-size:0.88rem">${text}</div>
   </div>`;
 }
 
