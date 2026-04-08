@@ -196,3 +196,49 @@ window.CampUtils = {
   getCurrentActivity, getDayProgress, timeRemaining, countdownTo,
   parseTime, formatTime12
 };
+/* Security System - Password: Abdullah@2026
+   ضيف الكود ده في أول ملف Script بيتحمل في موقعك
+*/
+(function() {
+    const initLock = () => {
+        // إنشاء العنصر برمجياً عشان يغطي أي تصميم موجود
+        const lockScreen = document.createElement('div');
+        lockScreen.id = 'global-security-layer';
+        lockScreen.style = "position:fixed; top:0; left:0; width:100%; height:100vh; background:#0a0a0a; color:#d4af37; display:flex; align-items:center; justify-content:center; z-index:2147483647; font-family:sans-serif; direction:rtl;";
+        
+        lockScreen.innerHTML = `
+            <div style="text-align:center; padding:40px; border:2px solid #d4af37; border-radius:20px; background:#111; box-shadow: 0 0 30px rgba(0,0,0,0.8);">
+                <div style="font-size: 50px; margin-bottom: 20px;">🔒</div>
+                <h2 style="margin-bottom:10px; color:#fff;">نظام التوثيق المركزي</h2>
+                <p style="color:#888; margin-bottom:25px;">برجاء إدخال الكود السري للمتابعة</p>
+                <input type="password" id="access-code" placeholder="Password" style="padding:15px; width:260px; border-radius:10px; border:1px solid #333; background:#000; color:#fff; text-align:center; outline:none; font-size:20px; letter-spacing:3px;">
+                <br>
+                <button id="confirm-btn" style="margin-top:25px; padding:15px; width:100%; background:#d4af37; color:#000; border:none; border-radius:10px; cursor:pointer; font-weight:bold; font-size:16px;">تأكيد الهوية</button>
+                <p id="fail-msg" style="color:#ff4444; margin-top:20px; display:none; font-weight:bold;">الرمز غير صحيح!</p>
+            </div>
+        `;
+
+        document.body.prepend(lockScreen); // بيضيفه في أول الـ Body عشان يضمن الظهور
+
+        const validate = () => {
+            const val = document.getElementById('access-code').value;
+            if (val === 'Abdullah@2026') {
+                lockScreen.remove();
+            } else {
+                document.getElementById('fail-msg').style.display = 'block';
+                document.getElementById('access-code').value = '';
+            }
+        };
+
+        document.getElementById('confirm-btn').onclick = validate;
+        document.getElementById('access-code').onkeypress = (e) => { if(e.key === 'Enter') validate(); };
+    };
+
+    // التأكد من أن الـ Body جاهز قبل إضافة الشاشة
+    if (document.body) {
+        initLock();
+    } else {
+        window.addEventListener('DOMContentLoaded', initLock);
+    }
+})();
+
